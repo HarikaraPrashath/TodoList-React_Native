@@ -6,72 +6,117 @@ import {
   TouchableOpacity,
   Modal,
   TextInput,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import noteService from "../../service/noteService.js";
 
 const NoteScreen = () => {
   // State to manage the list of notes
-  const [note, setNotes] = useState([
-    { id: 1, title: "Note 1"},
-    { id: 2, title: "Note 2"},
-    { id: 3, title: "Note 3"},
-  ]);
+  const [notes, setNotes] = useState([]);
 
   // State to manage the modal visibility
-  const [modelVisible, setModelVisible] = useState(false);
-  
+  const [modalVisible, setModalVisible] = useState(false);
+
   // State to manage the new note input
   const [newNote, setNewNote] = useState("");
 
-  // Function to add a new note to the list
-  const addNote = () => {
+  // Loading function
+  const [loading, setLoading] = useState(true);
+
+  // Function for handling errors
+  const [error, setError] = useState(null);
+
+  // Function to add a new note
+  const addNote = async () => {
     if (newNote.trim() === "") return; // Prevent adding empty notes
 
-    setNotes((prevNotes) => [
-      ...prevNotes,
-      {
-        id: Date.now().toString(), // Generate a unique ID
-        title: newNote, 
-      },
-    ]);
+    const response = await noteService.addNote(newNote);
+    console.log("newText", newNote); // coming
+    if (response.error) {
+      Alert.alert("Error", response.error);
+    } else {
+      // Assuming response.response contains the note data you want to add
+      setNotes((prevNotes) => [
+        ...prevNotes,
+        {
+          id: Date.now().toString(), // Generate a unique ID
+          title: newNote,
+          // Add other properties from response if needed
+        },
+      ]);
+      fetchNotes(); // Fetch updated notes from the server
+    }
 
     setNewNote(""); // Clear input field
-    setModelVisible(false); // Close the modal
+    setModalVisible(false); // Close the modal
+  };
+
+  // Function to fetch notes from the database
+  useEffect(() => {
+    fetchNotes();
+  }, []);
+
+  const fetchNotes = async () => {
+    try {
+      setLoading(true);
+      const response = await noteService.getNotes();
+
+      if (response.error) {
+        setError(response.error);
+        Alert.alert("Error", response.error);
+      } else {
+        setNotes(response.response);
+        setError(null);
+      }
+    } catch (error) {
+      console.error("Error fetching notes:", error.message);
+    }
+    setLoading(false);
   };
 
   return (
     <View style={styles.container}>
-      <Text>Notes</Text>
-
-      {/* Display notes in a list */}
-      <FlatList
-        data={note}
-        keyExtractor={(item) => item.id.toString()} // Ensure key is a string
-        renderItem={({ item }) => (
-          <View style={styles.noteItem}>
-            <Text style={styles.notesTittle}>{item.title}</Text>
-          </View>
-        )}
-      />
+      {loading ? (
+        <ActivityIndicator size={"large"} color={"#f4511e"} />
+      ) : (
+        <>
+          {error && <Text style={styles.errorText}>{error}</Text>}
+          {/* Display notes in a list */}
+          <Text style={styles.heading}>Notes</Text>
+          <FlatList
+            data={notes}
+            keyExtractor={(item) =>
+              item.id || item.$id || Date.now().toString()
+            } // Ensure each item has a unique key
+            renderItem={({ item }) => (
+              <View style={styles.noteItem}>
+                <Text style={styles.notesTitle}>{item.text}</Text>
+              </View>
+            )}
+          />
+        </>
+      )}
 
       {/* Button to open the add note modal */}
       <TouchableOpacity
         style={styles.addButton}
-        onPress={() => setModelVisible(true)}
+        onPress={() => setModalVisible(true)}
       >
         <Text style={styles.add}>+ Add Note</Text>
       </TouchableOpacity>
 
       {/* Modal for adding new notes */}
       <Modal
-        visible={modelVisible}
+        visible={modalVisible}
         animationType="slide"
         transparent
-        onRequestClose={() => setModelVisible(false)}
+        onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTittle}>Add Note</Text>
+            <Text style={styles.modalTitle}>Add Note</Text>
 
             {/* Input field for entering new notes */}
             <TextInput
@@ -86,7 +131,7 @@ const NoteScreen = () => {
             <View style={styles.modalButton}>
               <TouchableOpacity
                 style={styles.cancelButton}
-                onPress={() => setModelVisible(false)}
+                onPress={() => setModalVisible(false)}
               >
                 <Text style={styles.cancelText}>Cancel</Text>
               </TouchableOpacity>
@@ -106,7 +151,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#f5f5f5", // Light gray background
+    backgroundColor: "#f5f5f5",
   },
   noteItem: {
     backgroundColor: "#fff",
@@ -117,20 +162,15 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 4,
-    elevation: 5, // Adds shadow for Android
+    elevation: 5,
   },
-  notesTittle: {
+  notesTitle: {
     fontSize: 18,
     fontWeight: "bold",
     color: "#333",
   },
-  notesDec: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 4,
-  },
   addButton: {
-    backgroundColor: "#ff6347", // Tomato red
+    backgroundColor: "#ff6347",
     paddingVertical: 15,
     borderRadius: 12,
     alignItems: "center",
@@ -163,7 +203,7 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 8,
   },
-  modalTittle: {
+  modalTitle: {
     fontSize: 22,
     fontWeight: "bold",
     textAlign: "center",
@@ -210,6 +250,17 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  errorText: {
+    color: "red",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  heading: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 20,
   },
 });
 
