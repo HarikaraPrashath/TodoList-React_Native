@@ -33,11 +33,25 @@ const noteService = {
         createAt : new Date().toISOString()
        };
       const response = await databaseService.createDocument(dbId, colId, ID.unique(), data);
-      return response?.error ? { error: response.error } : { response };
+      return response?.error ? { error: response.error } : { success : true,response };
     } catch (error) {
       return { error: error.message || "Failed to add note" };
     }
-  }
-};
+  },
 
+
+  //Delete Note 
+  async deleteNote(id){
+    if(!id){
+      return {error: "Note ID is required"};
+    }
+    try{
+    const response = await databaseService.deleteDocument(dbId, colId, id);
+    return response?.error ? { error: response.error } : { success : true  };
+    }
+    catch(error){
+      return { error: error.message || "Failed to delete note" };
+  }
+}
+}
 export default noteService;

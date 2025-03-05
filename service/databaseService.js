@@ -18,13 +18,25 @@ const databaseService = {
     try {
       
       const response = await databases.createDocument(dbId, colId,id || undefined, data);
-      
-      return response;
+      return {success: true, response};
     } catch (error) {
       console.error("Error creating document:", error.message);
       return { error: error.message };
     }
   },
+
+
+  //delete Document
+  async deleteDocument(dbId, colId, id) {
+    try{
+      const response = await databases.deleteDocument(dbId, colId, id);
+      return {success: true, response};
+    }
+    catch(error){
+      console.error("Error deleting document:", error.message);
+      return { error: error.message };
+    }
+  }
 
 };
 

@@ -11,15 +11,18 @@ import {
 } from "react-native";
 import { useState, useEffect } from "react";
 import noteService from "../../service/noteService.js";
+import Icon from "react-native-vector-icons/MaterialIcons"; 
+
+
 
 const NoteScreen = () => {
-  // State to manage the list of notes
+  // State to manage the list of notes (coming from the server)
   const [notes, setNotes] = useState([]);
 
   // State to manage the modal visibility
   const [modalVisible, setModalVisible] = useState(false);
 
-  // State to manage the new note input
+  // State to manage the new note input (send to the server)
   const [newNote, setNewNote] = useState("");
 
   // Loading function
@@ -76,6 +79,30 @@ const NoteScreen = () => {
     setLoading(false);
   };
 
+  // Function to delete a note
+  const onDelete = async (id) => {
+    Alert.alert(
+      "Delete Note","Are you sure you want to delete this note?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            const response = await noteService.deleteNote(id);
+            if (response.error) {
+              Alert.alert("Error", response.error);
+            } else {
+              setNotes((prevNotes) => prevNotes.filter((note) => note.$id !== id));
+            }
+          }
+        }
+      ]
+    )
+  }
   return (
     <View style={styles.container}>
       {loading ? (
@@ -88,11 +115,14 @@ const NoteScreen = () => {
           <FlatList
             data={notes}
             keyExtractor={(item) =>
-              item.id || item.$id || Date.now().toString()
+              item.id || item.$id || Date.now().toString() 
             } // Ensure each item has a unique key
             renderItem={({ item }) => (
               <View style={styles.noteItem}>
                 <Text style={styles.notesTitle}>{item.text}</Text>
+                <TouchableOpacity onPress={() => onDelete(item.$id)}>
+                <Icon name="delete" size={24} color="#ff4d4d" />
+                </TouchableOpacity>
               </View>
             )}
           />
@@ -154,20 +184,25 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   noteItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     backgroundColor: "#fff",
     padding: 15,
     marginVertical: 8,
+    marginHorizontal: 10,
     borderRadius: 10,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 3 },
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 5,
+    elevation: 3, // For Android shadow
   },
   notesTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "500",
     color: "#333",
+    flexShrink: 1, // Prevents overflow
   },
   addButton: {
     backgroundColor: "#ff6347",
