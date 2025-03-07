@@ -1,13 +1,30 @@
-import { Text, View, StyleSheet, Image, StatusBar ,TouchableOpacity } from "react-native";
+import { Text, View, ActivityIndicator ,StyleSheet, Image, StatusBar ,TouchableOpacity } from "react-native";
 import PostItImage from "@/assets/images/post-it.png";
-import { router, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
+import{useAuth} from '../context/AuthContext'
+import { lazy, useEffect } from "react";
 
 const HomeScreen = () => {
+  const {user,loading}=useAuth()
   const router = useRouter();
+ 
+  useEffect(()=>{
+    if(!loading && user){
+      router.replace('/notes')
+    }
+  },[user,loading])
+
+  if(loading){
+    return(
+      <View style={styles.centerContainer}>
+        <ActivityIndicator size='large' color= 'origin'/>
+      </View>
+    )
+  }
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#f4511e" />
+      <StatusBar barStyle="light-content" backgroundColor="orange" />
       <Image source={PostItImage} style={styles.image} />
       <Text style={styles.title}>Welcome to Notes app </Text>
       <Text style={styles.subTittle}>
@@ -61,6 +78,12 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#1E1E1E", // Dark background for a modern look
   },
 });
 

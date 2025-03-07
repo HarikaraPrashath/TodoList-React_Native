@@ -1,9 +1,8 @@
-import { databases} from "./appwrite";
+import { databases } from "./appwrite";
 
 const databaseService = {
-  // list Documents 
-  async listDocuments(dbId, colId) 
-  {
+  // list Documents
+  async listDocuments(dbId, colId) {
     try {
       const response = await databases.listDocuments(dbId, colId);
       return response.documents || [];
@@ -13,31 +12,45 @@ const databaseService = {
     }
   },
 
-   // Create Document
-   async createDocument(dbId, colId, id = null , data) {
+  // Create Document
+  async createDocument(dbId, colId, id = null, data) {
     try {
-      
-      const response = await databases.createDocument(dbId, colId,id || undefined, data);
-      return {success: true, response};
+      const response = await databases.createDocument(
+        dbId,
+        colId,
+        id || undefined,
+        data
+      );
+      return { success: true, response };
     } catch (error) {
       console.error("Error creating document:", error.message);
       return { error: error.message };
     }
   },
-
-
+  //update Document
+  // async updateDocument(dbId, colId, id, data) {
+  //   try {
+  //     if (!data || typeof data !== "object") {
+  //       throw new Error("Invalid data object");
+  //     }
+  //     const response = await databases.updateDocument(dbId, colId, id, data);
+  //     return response || { error: "Empty response from database" };
+  //   } catch (error) {
+  //     console.error("Error updating document:", error.message);
+  //     return { error: error.message || "Unknown error occurred" };
+  //   }
+  // },
+  
   //delete Document
   async deleteDocument(dbId, colId, id) {
-    try{
+    try {
       const response = await databases.deleteDocument(dbId, colId, id);
-      return {success: true, response};
-    }
-    catch(error){
+      return { success: true, response };
+    } catch (error) {
       console.error("Error deleting document:", error.message);
       return { error: error.message };
     }
-  }
-
+  },
 };
 
 export default databaseService;

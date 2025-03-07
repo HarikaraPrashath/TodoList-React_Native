@@ -38,7 +38,22 @@ const noteService = {
       return { error: error.message || "Failed to add note" };
     }
   },
-
+// Update Note
+  // async updateNote(id, data) {
+  //   if (!id) {
+  //     return { error: "Note ID is required" };
+  //   }
+  //   if (!data || Object.keys(data).length === 0) {
+  //     return { error: "Update data is required" };
+  //   }
+  //   try {
+  //     const response = await databaseService.updateDocument(dbId, colId, id, data);
+  //     return response?.error ? { error: response.error } : { success: true, response };
+  //   } catch (error) {
+  //     return { error: error.message || "Failed to update note" };
+  //   }
+  // },
+  
 
   //Delete Note 
   async deleteNote(id){
