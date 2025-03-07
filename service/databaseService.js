@@ -2,15 +2,16 @@ import { databases } from "./appwrite";
 
 const databaseService = {
   // list Documents
-  async listDocuments(dbId, colId) {
+  async listDocuments(dbId, colId, queries = []) {
     try {
-      const response = await databases.listDocuments(dbId, colId);
-      return response.documents || [];
+      const response = await databases.listDocuments(dbId, colId, queries);
+      return { data: response.documents || [], error: null }; // ✅ Ensure data is an array
     } catch (error) {
       console.error("Error fetching notes:", error.message);
-      return { error: error.message };
+      return { data: [], error: error.message }; // ✅ Always return an object with `data`
     }
-  },
+  }
+,  
 
   // Create Document
   async createDocument(dbId, colId, id = null, data) {
